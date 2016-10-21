@@ -1,12 +1,39 @@
-﻿<Window x:Class="FolderSplit.MainWindow"
+﻿<Window x:Name="MainWindow1" x:Class="FolderSplit.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FolderSplit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
+        Title="Folder Split" Height="700" Width="525" SizeChanged="MainWindow1_SizeChanged">
+    <Grid Margin="0,0,-8,-1">
+        <Canvas x:Name="MainCanvas" HorizontalAlignment="Left" Height="660" VerticalAlignment="Top" Width="515" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}">
+            <Label x:Name="LabelSourceFolder" Content="Please Enter the Path to the Source Folder:" Canvas.Left="4" Canvas.Top="10" Height="24" Width="240"/>
+            <TextBox x:Name="TB_SourceFolder" Height="28" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="34" Width="372" MaxLines="1" TextChanged="TB_SourceFolder_TextChanged"/>
+            <Button x:Name="Button_Browse" Content="Browse" Canvas.Left="387" Canvas.Top="34" Width="75" Height="28" Click="Button_Browse_Click"/>
+            <TextBox x:Name="TB_MaxFiles" Height="29" Canvas.Left="13" TextWrapping="Wrap" Canvas.Top="245" Width="95" MaxLength="3" MaxLines="1" Text="N/A"/>
+            <TextBlock x:Name="TextBlock_MaxFiles" Canvas.Left="13" TextWrapping="Wrap" Text="Max Number of Files Per New Folder:" Canvas.Top="205" Width="113" Height="34"/>
+            <TextBlock x:Name="TextBlock_FilesFound" Canvas.Left="148" TextWrapping="Wrap" Text="# of Files Found:" Canvas.Top="218" Height="20" Width="93"/>
+            <Label x:Name="Label_FileNum" Content="N/A" Canvas.Left="148" Canvas.Top="245" Width="85" BorderThickness="1" BorderBrush="Black" Height="29" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+            <ProgressBar x:Name="PBar_Status" Height="48" Canvas.Left="9" Canvas.Top="300" Width="199" RenderTransformOrigin="0.5,0.5">
+                <ProgressBar.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="0.438"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </ProgressBar.RenderTransform>
+            </ProgressBar>
+            <Button x:Name="Button_Split" Content="Split Now" Canvas.Left="372" Canvas.Top="186" Width="101" Height="49" RenderTransformOrigin="1.067,0.595" Click="Button_Split_Click"/>
+            <Label x:Name="Label_Status" Content="Status:" Canvas.Left="357" Canvas.Top="265" RenderTransformOrigin="0.089,1.013"/>
+            <TextBlock x:Name="TextBlock_Status" Canvas.Left="233" TextWrapping="Wrap" Canvas.Top="295" Height="355" Width="272" Background="White" ScrollViewer.CanContentScroll="True"/>
+            <Label x:Name="LabelDestFolder" Content="Please Enter the Path of the Destination Folder:" Canvas.Left="4" Canvas.Top="67" Height="24" Width="281"/>
+            <TextBox x:Name="TB_DestinationFolder" Height="28" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="96" Width="372" MaxLines="1"/>
+            <Button x:Name="Button_Browse_Dest" Content="Browse" Canvas.Left="387" Canvas.Top="96" Width="75" Height="28" Click="Button_Browse_Dest_Click"/>
+            <TextBox x:Name="TB_BaseFolderName" Height="28" Canvas.Left="10" TextWrapping="Wrap" Canvas.Top="162" Width="254" MaxLines="1"/>
+            <Label x:Name="LabelBaseFileName" Content="Please Enter New Folder Name Prefix:" Canvas.Left="4" Canvas.Top="133" Height="24" Width="281"/>
+        </Canvas>
+
     </Grid>
 </Window>
