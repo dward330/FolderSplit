@@ -32,16 +32,22 @@ namespace FolderSplit
         BackgroundWorker worker;
         #endregion
 
+        #region delegates
+        public delegate void UpdateProgressbar(int percentage);
+        #endregion
+
         public MainWindow()
         {
             InitializeComponent();
             LoadAtStart();
 
+            /*
             worker = new BackgroundWorker();
             worker.RunWorkerCompleted += Worker_WorkCompleted;
             worker.WorkerReportsProgress = true;
             worker.DoWork += Worker_DoWork;
             worker.ProgressChanged += Worker_ProgressChanged;
+            */
         }
 
         private void TB_SourceFolder_TextChanged(object sender, TextChangedEventArgs e)
@@ -142,10 +148,10 @@ namespace FolderSplit
                 folderSplitInfo.MaxNumOfFilePerFolder = maxNumOfFilesPerFolder;
                 folderSplitInfo.BaseFolderName = TB_BaseFolderName.Text;
 
-                
-                worker.RunWorkerAsync(folderSplitInfo);            
-                
-          }
+                //worker.RunWorkerAsync(folderSplitInfo);            
+
+                ThreadPool.QueueUserWorkItem(new WaitCallback(ThreadPoolWork), folderSplitInfo);
+            }
             catch (Exception exception)
             {
 
@@ -154,7 +160,6 @@ namespace FolderSplit
 
         }
                 
-
         public void Worker_DoWork(object sender, DoWorkEventArgs e)
         {
             FolderSpiltInfo folderSplitInfo = e.Argument as FolderSpiltInfo;
@@ -209,6 +214,62 @@ namespace FolderSplit
         public void Worker_WorkCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             TextBlock_Status.Text = "DONE!";
+        }
+
+        /// <summary>
+        /// Work to be done by a thread pool thread
+        /// </summary>
+        /// <param name="o"></param>
+        public void ThreadPoolWork(object o) {
+            FolderSpiltInfo folderSplitInfo = o as FolderSpiltInfo;
+
+            #region Get List of Files, and calculate variables in Shantel's Algorithm
+            DirectoryInfo chosenDirectory = new DirectoryInfo(folderSplitInfo.SourceDirectory);
+            double FilesFound = chosenDirectory.EnumerateFiles().Count(), FoldersNeeded = Math.Ceiling(FilesFound / ((double)folderSplitInfo.MaxNumOfFilePerFolder));
+            List<FileInfo> listOfFiles = chosenDirectory.EnumerateFiles().ToList()
+                .Where(b => !b.Attributes.HasFlag(FileAttributes.Hidden))
+                .OrderBy(c => c.FullName).ToList();
+
+            int x = (int)FilesFound, y = folderSplitInfo.MaxNumOfFilePerFolder, z = (int)Math.Ceiling(FilesFound / FoldersNeeded);
+            double zUnits = ((double)z) / 8.0;
+            #endregion
+
+            #region File Movement
+            string folderName = "", sourceFilePath = "", destinationFilePath = "";
+            for (int fileCounter = 1; fileCounter <= listOfFiles.Count(); fileCounter++)
+            {
+                //Create new Folder Name
+                folderName = String.Format("{0}_{1}", folderSplitInfo.BaseFolderName, fileCounter);
+
+                //Proceed, Only if this location we want to create does not exist
+                if (!Directory.Exists(folderName))
+                {
+                    string absoluteDestinationFolderPath = System.IO.Path.Combine(folderSplitInfo.DestinationDirectory, folderName);
+
+                    //Create New File Location and copy over some of the files over to it. 
+                    Directory.CreateDirectory(absoluteDestinationFolderPath);
+                    for (int numOfFilesInThisFolder = 1; numOfFilesInThisFolder <= folderSplitInfo.MaxNumOfFilePerFolder && fileCounter <= FilesFound; numOfFilesInThisFolder++, fileCounter++)
+                    {
+                        sourceFilePath = System.IO.Path.Combine(listOfFiles.ToArray()[fileCounter - 1].FullName);
+                        destinationFilePath = System.IO.Path.Combine(folderSplitInfo.DestinationDirectory, folderName);
+                        destinationFilePath = System.IO.Path.Combine(destinationFilePath, listOfFiles.ToArray()[fileCounter - 1].Name);
+                        File.Copy(sourceFilePath, destinationFilePath);
+
+                        //Report Progress-> Update UI by Queuing up work on that thread.
+                        this.PBar_Status.Dispatcher.Invoke(new UpdateProgressbar(this.NewProgressBarCompletionPercentage), (int)((fileCounter / FilesFound) * 100));
+                    }
+                    fileCounter--;
+                }
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// Updates Progress Bar to Reflect a new Percentage of Completion
+        /// </summary>
+        /// <param name="percentage"> Percentage the of the Progress Bar that should be filled</param>
+        public void NewProgressBarCompletionPercentage(int percentage) {
+            PBar_Status.Value = PBar_Status.Maximum * (((double)percentage) / 100.00);
         }
 
         /// <summary>
